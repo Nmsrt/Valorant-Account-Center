@@ -1,15 +1,15 @@
 import './RankBadge.css'
 
 const RANK_CONFIG = {
-  Iron:      { color: '#9ea0a6', bg: 'rgba(158,160,166,0.12)' },
-  Bronze:    { color: '#cd7f32', bg: 'rgba(205,127,50,0.12)' },
-  Silver:    { color: '#c0c0c0', bg: 'rgba(192,192,192,0.12)' },
-  Gold:      { color: '#f0c040', bg: 'rgba(240,192,64,0.12)' },
-  Platinum:  { color: '#5fbfad', bg: 'rgba(95,191,173,0.12)' },
-  Diamond:   { color: '#4fc3f7', bg: 'rgba(79,195,247,0.12)' },
-  Ascendant: { color: '#4caf84', bg: 'rgba(76,175,132,0.12)' },
-  Immortal:  { color: '#e040fb', bg: 'rgba(224,64,251,0.12)' },
-  Radiant:   { color: '#ffe566', bg: 'rgba(255,229,102,0.15)' },
+  Iron:      { color: '#8c9196', bg: 'rgba(140,145,150,0.12)' },
+  Bronze:    { color: '#a8693a', bg: 'rgba(168,105,58,0.12)' },
+  Silver:    { color: '#b0c0c8', bg: 'rgba(176,192,200,0.12)' },
+  Gold:      { color: '#e8b84b', bg: 'rgba(232,184,75,0.12)' },
+  Platinum:  { color: '#4db8a8', bg: 'rgba(77,184,168,0.12)' },
+  Diamond:   { color: '#8a6fff', bg: 'rgba(138,111,255,0.12)' },
+  Ascendant: { color: '#4bbd8c', bg: 'rgba(75,189,140,0.12)' },
+  Immortal:  { color: '#c43e4e', bg: 'rgba(196,62,78,0.12)' },
+  Radiant:   { color: '#ffd700', bg: 'rgba(255,215,0,0.15)' },
 }
 
 export default function RankBadge({ rank }) {
