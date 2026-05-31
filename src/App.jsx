@@ -1,0 +1,169 @@
+import { useState, useEffect, useCallback } from 'react'
+import Navbar from './components/Navbar'
+import AccountTable from './components/AccountTable'
+import AccountModal from './components/AccountModal'
+import DeleteModal from './components/DeleteModal'
+import Toast from './components/Toast'
+import FirestoreTest from './components/FirestoreTest'
+import { getAccounts, createAccount, updateAccount, deleteAccount } from './accountService'
+import './App.css'
+
+const RANK_ORDER = ['Iron','Bronze','Silver','Gold','Platinum','Diamond','Ascendant','Immortal','Radiant']
+
+export default function App() {
+  const [accounts, setAccounts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [filterRank, setFilterRank] = useState('')
+  const [sortConfig, setSortConfig] = useState({ key: 'createdAt', dir: 'desc' })
+  const [addOpen, setAddOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [toasts, setToasts] = useState([])
+  const [showTest, setShowTest] = useState(false)
+
+  const showToast = useCallback((msg, type = 'success') => {
+    const id = Date.now()
+    setToasts(prev => [...prev, { id, msg, type }])
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3200)
+  }, [])
+
+  const fetchAccounts = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await getAccounts()
+      setAccounts(data)
+    } catch (e) {
+      console.error('fetchAccounts error:', e)
+      showToast(e.message || 'Failed to load accounts', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }, [showToast])
+
+  useEffect(() => { fetchAccounts() }, [fetchAccounts])
+
+  const displayed = accounts
+    .filter(a => {
+      const q = search.toLowerCase()
+      return (
+        a.ign?.toLowerCase().includes(q) ||
+        a.tagline?.toLowerCase().includes(q) ||
+        a.username?.toLowerCase().includes(q)
+      )
+    })
+    .filter(a => !filterRank || a.rank === filterRank)
+    .sort((a, b) => {
+      const { key, dir } = sortConfig
+      let va = a[key] ?? ''
+      let vb = b[key] ?? ''
+      if (key === 'rank') {
+        va = RANK_ORDER.indexOf(a.rank ?? '')
+        vb = RANK_ORDER.indexOf(b.rank ?? '')
+      }
+      if (va < vb) return dir === 'asc' ? -1 : 1
+      if (va > vb) return dir === 'asc' ? 1 : -1
+      return 0
+    })
+
+  const handleSort = key =>
+    setSortConfig(prev => prev.key === key
+      ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+      : { key, dir: 'asc' })
+
+  const handleAdd = async data => {
+    await createAccount(data)
+    showToast('Account added!')
+    setAddOpen(false)
+    fetchAccounts()
+  }
+
+  const handleEdit = async data => {
+    await updateAccount(editTarget.id, data)
+    showToast('Account updated!')
+    setEditTarget(null)
+    fetchAccounts()
+  }
+
+  const handleDelete = async () => {
+    try {
+      await deleteAccount(deleteTarget.id)
+      showToast('Account deleted')
+      setDeleteTarget(null)
+      fetchAccounts()
+    } catch (e) {
+      showToast(e.message || 'Error deleting account', 'error')
+    }
+  }
+
+  return (
+    <div className="app">
+      <Navbar />
+      <main className="main">
+        <div className="page-header">
+          <div className="page-header__left">
+            <h2 className="page-title">Account Vault</h2>
+            <span className="account-count">{displayed.length} accounts</span>
+          </div>
+          <div className="page-header__right">
+            <button className="btn-add" onClick={() => setAddOpen(true)}>
+              <span>+</span> Add Account
+            </button>
+          </div>
+        </div>
+
+        {showTest && <FirestoreTest />}
+
+        <div className="filters">
+          <div className="search-wrap">
+            <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search IGN, tagline, username..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            {search && (
+              <button className="search-clear" onClick={() => setSearch('')}>×</button>
+            )}
+          </div>
+          <select
+            className="rank-select"
+            value={filterRank}
+            onChange={e => setFilterRank(e.target.value)}
+          >
+            <option value="">All Ranks</option>
+            {RANK_ORDER.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
+
+        <AccountTable
+          accounts={displayed}
+          loading={loading}
+          sortConfig={sortConfig}
+          onSort={handleSort}
+          onEdit={setEditTarget}
+          onDelete={setDeleteTarget}
+          onToast={showToast}
+        />
+      </main>
+
+      {addOpen && (
+        <AccountModal title="Add Account" onSubmit={handleAdd} onClose={() => setAddOpen(false)} />
+      )}
+      {editTarget && (
+        <AccountModal title="Edit Account" initial={editTarget} onSubmit={handleEdit} onClose={() => setEditTarget(null)} />
+      )}
+      {deleteTarget && (
+        <DeleteModal account={deleteTarget} onConfirm={handleDelete} onClose={() => setDeleteTarget(null)} />
+      )}
+
+      <div className="toast-container">
+        {toasts.map(t => <Toast key={t.id} message={t.msg} type={t.type} />)}
+      </div>
+    </div>
+  )
+}

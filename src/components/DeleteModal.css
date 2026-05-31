@@ -1,0 +1,135 @@
+.del-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: overlay-in 0.2s ease;
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.del-box {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,70,85,0.3);
+  border-radius: 6px;
+  width: 100%;
+  max-width: 400px;
+  padding: 32px 28px 28px;
+  text-align: center;
+  box-shadow: 0 0 0 1px rgba(255,70,85,0.08), 0 24px 60px rgba(0,0,0,0.6);
+  animation: box-in 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+
+@keyframes box-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.del-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255,70,85,0.1);
+  border: 1px solid rgba(255,70,85,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.del-icon { width: 24px; height: 24px; color: var(--red); }
+
+.del-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.del-message {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+.del-name { color: var(--text-primary); font-weight: 700; }
+
+.del-meta {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 16px;
+  margin-bottom: 24px;
+}
+
+.del-meta__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+}
+
+.del-meta__label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.del-meta__value {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.del-actions { display: flex; gap: 10px; }
+
+.del-btn-cancel {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.del-btn-cancel:hover { border-color: var(--border-bright); color: var(--text-primary); }
+
+.del-btn-confirm {
+  flex: 1;
+  padding: 10px;
+  background: var(--red);
+  border: none;
+  color: white;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  cursor: pointer;
+  clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
+  transition: background 0.15s, transform 0.1s;
+}
+.del-btn-confirm:hover { background: #ff2d3e; transform: translateY(-1px); }
+.del-btn-confirm:active { transform: translateY(0); }
