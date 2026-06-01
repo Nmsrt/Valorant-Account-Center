@@ -5,12 +5,15 @@ import AccountModal from './components/AccountModal'
 import AccountDetailModal from './components/AccountDetailModal'
 import DeleteModal from './components/DeleteModal'
 import Toast from './components/Toast'
+import LockScreen from './components/LockScreen'
 import { getAccounts, createAccount, updateAccount, deleteAccount } from './accountService'
 import './App.css'
 
 const RANK_ORDER = ['Unranked','Iron','Bronze','Silver','Gold','Platinum','Diamond','Ascendant','Immortal','Radiant']
 
 export default function App() {
+  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem('vac_unlocked') === '1')
+
   const [accounts, setAccounts] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -41,7 +44,11 @@ export default function App() {
     }
   }, [showToast])
 
-  useEffect(() => { fetchAccounts() }, [fetchAccounts])
+  useEffect(() => { if (unlocked) fetchAccounts() }, [unlocked, fetchAccounts])
+
+  if (!unlocked) {
+    return <LockScreen onUnlock={() => setUnlocked(true)} />
+  }
 
   const displayed = accounts
     .filter(a => {

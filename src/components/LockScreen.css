@@ -1,0 +1,207 @@
+.lock-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,70,85,0.15) 0%, transparent 70%),
+    var(--bg-void);
+}
+
+/* Subtle scanline overlay */
+.lock-bg {
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.04) 2px,
+    rgba(0,0,0,0.04) 4px
+  );
+  pointer-events: none;
+}
+
+.lock-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-bright);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 380px;
+  padding: 44px 36px 40px;
+  text-align: center;
+  box-shadow:
+    0 0 0 1px rgba(255,70,85,0.1),
+    0 40px 100px rgba(0,0,0,0.7),
+    0 0 60px rgba(255,70,85,0.05);
+  animation: lock-in 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+
+@keyframes lock-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes lock-shake {
+  0%, 100% { transform: translateX(0); }
+  15%       { transform: translateX(-8px); }
+  30%       { transform: translateX(8px); }
+  45%       { transform: translateX(-6px); }
+  60%       { transform: translateX(6px); }
+  75%       { transform: translateX(-3px); }
+  90%       { transform: translateX(3px); }
+}
+
+.lock-box--shake {
+  animation: lock-shake 0.55s cubic-bezier(0.36,0.07,0.19,0.97);
+}
+
+.lock-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 0 16px rgba(255,70,85,0.5));
+}
+
+.lock-title {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  letter-spacing: 0.22em;
+  color: var(--red);
+  line-height: 1;
+  margin-bottom: 4px;
+  text-shadow: 0 0 30px rgba(255,70,85,0.4);
+}
+
+.lock-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0;
+}
+
+.lock-divider {
+  width: 48px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--red), transparent);
+  margin: 24px auto;
+  border-radius: 2px;
+}
+
+.lock-prompt {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+
+.lock-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lock-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.lock-input-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.lock-input-wrap:focus-within .lock-input-icon {
+  color: var(--red);
+}
+
+.lock-input {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  letter-spacing: 0.2em;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.lock-input::placeholder {
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.lock-input:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-glow);
+}
+
+.lock-input-wrap--error .lock-input {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgba(248,113,113,0.2);
+}
+
+.lock-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: #f87171;
+  animation: error-in 0.2s ease;
+}
+
+@keyframes error-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.lock-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: var(--red);
+  border: none;
+  color: white;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  cursor: pointer;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  transition: background 0.15s, transform 0.1s;
+  margin-top: 4px;
+}
+
+.lock-btn:hover { background: #ff2d3e; transform: translateY(-1px); }
+.lock-btn:active { transform: translateY(0); }
+
+@media (max-width: 480px) {
+  .lock-box { padding: 36px 24px 32px; }
+  .lock-title { font-size: 2.2rem; }
+}
