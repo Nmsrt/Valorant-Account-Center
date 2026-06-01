@@ -2,13 +2,13 @@ import { useState, useEffect, useCallback } from 'react'
 import Navbar from './components/Navbar'
 import AccountTable from './components/AccountTable'
 import AccountModal from './components/AccountModal'
+import AccountDetailModal from './components/AccountDetailModal'
 import DeleteModal from './components/DeleteModal'
 import Toast from './components/Toast'
-import FirestoreTest from './components/FirestoreTest'
 import { getAccounts, createAccount, updateAccount, deleteAccount } from './accountService'
 import './App.css'
 
-const RANK_ORDER = ['Iron','Bronze','Silver','Gold','Platinum','Diamond','Ascendant','Immortal','Radiant']
+const RANK_ORDER = ['Unranked','Iron','Bronze','Silver','Gold','Platinum','Diamond','Ascendant','Immortal','Radiant']
 
 export default function App() {
   const [accounts, setAccounts] = useState([])
@@ -19,8 +19,8 @@ export default function App() {
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [detailTarget, setDetailTarget] = useState(null)
   const [toasts, setToasts] = useState([])
-  const [showTest, setShowTest] = useState(false)
 
   const showToast = useCallback((msg, type = 'success') => {
     const id = Date.now()
@@ -112,8 +112,6 @@ export default function App() {
           </div>
         </div>
 
-        {showTest && <FirestoreTest />}
-
         <div className="filters">
           <div className="search-wrap">
             <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -145,8 +143,7 @@ export default function App() {
           loading={loading}
           sortConfig={sortConfig}
           onSort={handleSort}
-          onEdit={setEditTarget}
-          onDelete={setDeleteTarget}
+          onRowClick={setDetailTarget}
           onToast={showToast}
         />
       </main>
@@ -159,6 +156,14 @@ export default function App() {
       )}
       {deleteTarget && (
         <DeleteModal account={deleteTarget} onConfirm={handleDelete} onClose={() => setDeleteTarget(null)} />
+      )}
+      {detailTarget && (
+        <AccountDetailModal
+          account={detailTarget}
+          onEdit={acc => { setDetailTarget(null); setEditTarget(acc) }}
+          onDelete={acc => { setDetailTarget(null); setDeleteTarget(acc) }}
+          onClose={() => setDetailTarget(null)}
+        />
       )}
 
       <div className="toast-container">

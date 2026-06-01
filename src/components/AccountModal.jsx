@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import './AccountModal.css'
 
-const RANKS = ['Iron','Bronze','Silver','Gold','Platinum','Diamond','Ascendant','Immortal','Radiant']
-const EMPTY = { ign: '', tagline: '', username: '', password: '', rank: '' }
+const RANKS = ['Unranked','Iron','Bronze','Silver','Gold','Platinum','Diamond','Ascendant','Immortal','Radiant']
+const EMPTY = { ign: '', tagline: '', username: '', password: '', rank: '', verified: false, notes: '' }
 
 export default function AccountModal({ title, initial, onSubmit, onClose }) {
-  const [form, setForm] = useState(initial ? { ...initial } : { ...EMPTY })
+  const [form, setForm] = useState(initial ? { ...EMPTY, ...initial } : { ...EMPTY })
   const [showPw, setShowPw] = useState(false)
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState('')
@@ -25,7 +25,6 @@ export default function AccountModal({ title, initial, onSubmit, onClose }) {
     if (!form.tagline.trim()) errs.tagline = 'Required'
     if (!form.username.trim()) errs.username = 'Required'
     if (!form.password.trim()) errs.password = 'Required'
-    if (!form.rank) errs.rank = 'Select a rank'
     return errs
   }
 
@@ -128,18 +127,56 @@ export default function AccountModal({ title, initial, onSubmit, onClose }) {
             </div>
           </Field>
 
-          <Field label="Rank" error={errors.rank}>
-            <select
-              className={`field-select ${errors.rank ? 'field-input--error' : ''}`}
-              value={form.rank}
-              onChange={e => handleChange('rank', e.target.value)}
-            >
-              <option value="" disabled>Select rank</option>
-              {RANKS.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
+          <div className="form-row">
+            <Field label="Rank" error={errors.rank}>
+              <select
+                className={`field-select ${errors.rank ? 'field-input--error' : ''}`}
+                value={form.rank}
+                onChange={e => handleChange('rank', e.target.value)}
+              >
+                <option value="">Select rank</option>
+                {RANKS.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </Field>
+
+            <Field label="Verified">
+              <div className="verified-toggle-wrap">
+                <button
+                  type="button"
+                  className={`verified-toggle ${form.verified ? 'verified-toggle--on' : ''}`}
+                  onClick={() => handleChange('verified', !form.verified)}
+                  role="switch"
+                  aria-checked={form.verified}
+                >
+                  <span className="verified-toggle__track">
+                    <span className="verified-toggle__thumb" />
+                  </span>
+                  <span className="verified-toggle__label">
+                    {form.verified ? (
+                      <>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Verified
+                      </>
+                    ) : 'Not verified'}
+                  </span>
+                </button>
+              </div>
+            </Field>
+          </div>
+
+          <Field label="Notes (optional)">
+            <textarea
+              className="field-input field-textarea"
+              value={form.notes}
+              onChange={e => handleChange('notes', e.target.value)}
+              placeholder="Any extra notes about this account..."
+              rows={3}
+              autoComplete="off"
+            />
           </Field>
 
-          {/* Visible error banner — shows exactly what went wrong */}
           {submitError && (
             <div className="submit-error">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16" style={{flexShrink:0}}>

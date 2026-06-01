@@ -19,7 +19,6 @@ export async function getAccounts() {
     const snapshot = await getDocs(q)
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
   } catch (err) {
-    // If index doesn't exist yet, fall back to unordered fetch
     console.warn('Ordered fetch failed, falling back:', err.message)
     const snapshot = await getDocs(collection(db, COL))
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
@@ -27,13 +26,12 @@ export async function getAccounts() {
 }
 
 export async function createAccount(data) {
-  const { ign, tagline, username, password, rank } = data
+  const { ign, tagline, username, password, rank, verified, notes } = data
 
   if (!ign || !tagline || !username || !password) {
     throw new Error('IGN, tagline, username, and password are required.')
   }
 
-  // Check for duplicate username
   let all = []
   try {
     all = await getAccounts()
@@ -52,10 +50,12 @@ export async function createAccount(data) {
       username: username.trim(),
       password,
       rank: rank || null,
+      verified: verified || false,
+      notes: notes?.trim() || '',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     })
-    return { id: docRef.id, ign, tagline, username, password, rank }
+    return { id: docRef.id, ign, tagline, username, password, rank, verified, notes }
   } catch (err) {
     console.error('Firestore addDoc error:', err)
     throw new Error(`Failed to save: ${err.message}`)
@@ -63,7 +63,7 @@ export async function createAccount(data) {
 }
 
 export async function updateAccount(id, data) {
-  const { ign, tagline, username, password, rank } = data
+  const { ign, tagline, username, password, rank, verified, notes } = data
 
   if (!ign || !tagline || !username || !password) {
     throw new Error('All fields are required.')
@@ -87,9 +87,11 @@ export async function updateAccount(id, data) {
       username: username.trim(),
       password,
       rank: rank || null,
+      verified: verified || false,
+      notes: notes?.trim() || '',
       updatedAt: serverTimestamp(),
     })
-    return { id, ign, tagline, username, password, rank }
+    return { id, ign, tagline, username, password, rank, verified, notes }
   } catch (err) {
     console.error('Firestore updateDoc error:', err)
     throw new Error(`Failed to update: ${err.message}`)
