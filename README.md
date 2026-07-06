@@ -1,9 +1,9 @@
 # V.A.C. — Valorant Account Center
 
-A Valorant account manager built with **React + Vite** and **Firebase Firestore**.
+A Valorant account manager built with **React + Vite** and **Supabase**.
 
 ## Features
-- Add / Edit / Delete accounts (stored in Firestore)
+- Add / Edit / Delete accounts (stored in Supabase)
 - Copy username & password to clipboard with one click
 - Toggle password visibility per row
 - Search across IGN, tagline, username
@@ -16,19 +16,42 @@ A Valorant account manager built with **React + Vite** and **Firebase Firestore*
 
 ## Setup
 
-### 1. Create a Firebase Project
+### 1. Create a Supabase Project
 
-1. Go to https://console.firebase.google.com
-2. Click **Add project**
-3. Go to **Firestore Database** → **Create database** (Start in test mode)
-4. Go to **Project Settings** → **Your apps** → click the **Web** icon (`</>`)
-5. Copy the `firebaseConfig` values
+1. Go to https://supabase.com/dashboard
+2. Click **New project**
+3. Once ready, open the **SQL Editor** and run the schema below
+4. Go to **Project Settings** → **API** to get your **Project URL** and **anon public** key
+
+#### Schema
+
+```sql
+create table accounts (
+  id          uuid primary key default gen_random_uuid(),
+  ign         text not null,
+  tagline     text not null,
+  username    text not null,
+  password    text not null,
+  rank        text,
+  verified    boolean not null default false,
+  notes       text default '',
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+-- Row Level Security: open policy (matches the previous Firestore rules).
+-- Tighten this before any real deployment.
+alter table accounts enable row level security;
+
+create policy "public access" on accounts
+  for all using (true) with check (true);
+```
 
 ### 2. Configure Environment Variables
 
 ```bash
 cp .env.example .env
-# Fill in your Firebase values in .env
+# Fill in your Supabase values in .env
 ```
 
 ### 3. Install & Run
@@ -53,11 +76,7 @@ npm run dev
 
 | Variable | Description |
 |---|---|
-| `VITE_FIREBASE_API_KEY` | Firebase API key |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase auth domain |
-| `VITE_FIREBASE_PROJECT_ID` | Firestore project ID |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Storage bucket |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Messaging sender ID |
-| `VITE_FIREBASE_APP_ID` | Firebase app ID |
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon (public) API key |
 
 > **Never commit your `.env` file.** It is already in `.gitignore`.

@@ -1,28 +1,34 @@
-import {
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  query,
-  orderBy,
-  serverTimestamp,
-} from 'firebase/firestore'
-import { db } from './firebase'
+import { supabase } from './supabase'
 
-const COL = 'accounts'
+const TABLE = 'accounts'
+
+// Map a DB row (snake_case) to the shape the app expects (createdAt sort key).
+function fromRow(row) {
+  return {
+    id: row.id,
+    ign: row.ign,
+    tagline: row.tagline,
+    username: row.username,
+    password: row.password,
+    rank: row.rank,
+    verified: row.verified,
+    notes: row.notes,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
 
 export async function getAccounts() {
-  try {
-    const q = query(collection(db, COL), orderBy('createdAt', 'desc'))
-    const snapshot = await getDocs(q)
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
-  } catch (err) {
-    console.warn('Ordered fetch failed, falling back:', err.message)
-    const snapshot = await getDocs(collection(db, COL))
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Supabase select error:', error)
+    throw new Error(`Failed to load accounts: ${error.message}`)
   }
+  return data.map(fromRow)
 }
 
 export async function createAccount(data) {
@@ -43,8 +49,9 @@ export async function createAccount(data) {
     throw new Error('An account with this username already exists.')
   }
 
-  try {
-    const docRef = await addDoc(collection(db, COL), {
+  const { data: row, error } = await supabase
+    .from(TABLE)
+    .insert({
       ign: ign.trim(),
       tagline: tagline.trim(),
       username: username.trim(),
@@ -52,14 +59,15 @@ export async function createAccount(data) {
       rank: rank || null,
       verified: verified || false,
       notes: notes?.trim() || '',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
     })
-    return { id: docRef.id, ign, tagline, username, password, rank, verified, notes }
-  } catch (err) {
-    console.error('Firestore addDoc error:', err)
-    throw new Error(`Failed to save: ${err.message}`)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Supabase insert error:', error)
+    throw new Error(`Failed to save: ${error.message}`)
   }
+  return fromRow(row)
 }
 
 export async function updateAccount(id, data) {
@@ -80,8 +88,9 @@ export async function updateAccount(id, data) {
     throw new Error('An account with this username already exists.')
   }
 
-  try {
-    await updateDoc(doc(db, COL, id), {
+  const { data: row, error } = await supabase
+    .from(TABLE)
+    .update({
       ign: ign.trim(),
       tagline: tagline.trim(),
       username: username.trim(),
@@ -89,20 +98,23 @@ export async function updateAccount(id, data) {
       rank: rank || null,
       verified: verified || false,
       notes: notes?.trim() || '',
-      updatedAt: serverTimestamp(),
+      updated_at: new Date().toISOString(),
     })
-    return { id, ign, tagline, username, password, rank, verified, notes }
-  } catch (err) {
-    console.error('Firestore updateDoc error:', err)
-    throw new Error(`Failed to update: ${err.message}`)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Supabase update error:', error)
+    throw new Error(`Failed to update: ${error.message}`)
   }
+  return fromRow(row)
 }
 
 export async function deleteAccount(id) {
-  try {
-    await deleteDoc(doc(db, COL, id))
-  } catch (err) {
-    console.error('Firestore deleteDoc error:', err)
-    throw new Error(`Failed to delete: ${err.message}`)
+  const { error } = await supabase.from(TABLE).delete().eq('id', id)
+  if (error) {
+    console.error('Supabase delete error:', error)
+    throw new Error(`Failed to delete: ${error.message}`)
   }
 }
