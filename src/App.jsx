@@ -7,13 +7,16 @@ import DeleteModal from './components/DeleteModal'
 import Toast from './components/Toast'
 import LockScreen from './components/LockScreen'
 import { getAccounts, createAccount, updateAccount, deleteAccount } from './accountService'
-import { fetchRanksFor } from './rankService'
+import { fetchRanksFor, tierOf, TIERS } from './rankService'
 import './App.css'
 
-const RANK_ORDER = ['Unranked','Iron','Bronze','Silver','Gold','Platinum','Diamond','Ascendant','Immortal','Radiant']
+// Tier for filter/sort: parsed live tier when the lookup landed, else manual rank.
+const displayTier = a => a.live?.tier ?? tierOf(a.rank)
 
-// "Immortal 2" → "Immortal"; manual ranks are already plain tiers.
-const tierOf = rank => (rank || '').split(' ')[0]
+// Single sort key per account: tier, then division, then RR. Bands are wide
+// enough that RR (hundreds at most) can never spill into the division band.
+const rankScore = a =>
+  TIERS.indexOf(displayTier(a)) * 1e6 + (a.live?.division ?? 0) * 1e5 + (a.live?.rr ?? 0)
 
 export default function App() {
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem('vac_unlocked') === '1')
@@ -53,21 +56,27 @@ export default function App() {
 
   // Fill in live rank/RR in the background; table renders instantly from DB
   // and rank cells update as lookups land (cached entries resolve at once).
+  // The cleanup cancels the previous pool so an edit/delete can't receive a
+  // stale result for the old identity; the identity check skips re-renders
+  // when a re-run just replays cache hits.
   useEffect(() => {
     if (!accounts.length) return
-    fetchRanksFor(accounts, (id, r) => setLiveRanks(prev => ({ ...prev, [id]: r })))
+    const { cancel } = fetchRanksFor(accounts, (id, r) =>
+      setLiveRanks(prev => (prev[id] === r ? prev : { ...prev, [id]: r }))
+    )
+    return cancel
   }, [accounts])
 
   if (!unlocked) {
     return <LockScreen onUnlock={() => setUnlocked(true)} />
   }
 
-  // Live rank overrides the manually stored one; manual stays as fallback.
+  // Live rank rides alongside the stored fields as `a.live` — it must never
+  // overwrite `rank`, which is the manual fallback the edit form round-trips
+  // back to the DB. Display prefers `live.label`; `rank` stays authoritative.
   const merged = accounts.map(a => {
     const live = liveRanks[a.id]
-    return live
-      ? { ...a, rank: live.label, rankDivision: live.division, rr: live.rr, rankDelta: live.delta }
-      : a
+    return live ? { ...a, live } : a
   })
 
   const displayed = merged
@@ -79,14 +88,14 @@ export default function App() {
         a.username?.toLowerCase().includes(q)
       )
     })
-    .filter(a => !filterRank || tierOf(a.rank) === filterRank)
+    .filter(a => !filterRank || displayTier(a) === filterRank)
     .sort((a, b) => {
       const { key, dir } = sortConfig
       let va = a[key] ?? ''
       let vb = b[key] ?? ''
       if (key === 'rank') {
-        va = RANK_ORDER.indexOf(tierOf(a.rank)) * 10000 + (a.rankDivision ?? 0) * 1000 + (a.rr ?? 0)
-        vb = RANK_ORDER.indexOf(tierOf(b.rank)) * 10000 + (b.rankDivision ?? 0) * 1000 + (b.rr ?? 0)
+        va = rankScore(a)
+        vb = rankScore(b)
       }
       if (va < vb) return dir === 'asc' ? -1 : 1
       if (va > vb) return dir === 'asc' ? 1 : -1
@@ -163,7 +172,7 @@ export default function App() {
             onChange={e => setFilterRank(e.target.value)}
           >
             <option value="">All Ranks</option>
-            {RANK_ORDER.map(r => <option key={r} value={r}>{r}</option>)}
+            {TIERS.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
         </div>
 

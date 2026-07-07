@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
+import { REGIONS, TIERS as RANKS } from '../rankService'
 import './AccountModal.css'
-
-const RANKS = ['Unranked','Iron','Bronze','Silver','Gold','Platinum','Diamond','Ascendant','Immortal','Radiant']
-const REGIONS = ['ap', 'eu', 'na', 'kr']
 const EMPTY = { ign: '', tagline: '', username: '', password: '', rank: '', region: 'ap', verified: false, notes: '' }
 
 export default function AccountModal({ title, initial, onSubmit, onClose }) {

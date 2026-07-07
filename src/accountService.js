@@ -3,6 +3,11 @@ import { supabase } from './supabase'
 const TABLE = 'accounts'
 const DUPLICATE_MSG = 'An account with this username already exists.'
 const UNIQUE_VIOLATION = '23505' // Postgres unique-constraint error code
+// PGRST204 = PostgREST "column not in schema cache"; 42703 = Postgres undefined column.
+// Both mean the table predates the region column — point at the README migration.
+const MISSING_COLUMN_CODES = ['PGRST204', '42703']
+const MISSING_REGION_MSG =
+  'The accounts table is missing the "region" column — run the migration SQL in README.md, then retry.'
 
 // Map a DB row (snake_case) to the shape the app expects (createdAt sort key).
 function fromRow({ created_at, updated_at, ...rest }) {
@@ -13,6 +18,9 @@ function throwIfError(error, action) {
   if (!error) return
   console.error(`Supabase error (${action}):`, error)
   if (error.code === UNIQUE_VIOLATION) throw new Error(DUPLICATE_MSG)
+  if (MISSING_COLUMN_CODES.includes(error.code) && /region/i.test(error.message || '')) {
+    throw new Error(MISSING_REGION_MSG)
+  }
   throw new Error(`Failed to ${action}: ${error.message}`)
 }
 

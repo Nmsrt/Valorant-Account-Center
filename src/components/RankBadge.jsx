@@ -1,3 +1,4 @@
+import { tierOf } from '../rankService'
 import './RankBadge.css'
 
 const RANK_CONFIG = {
@@ -16,7 +17,7 @@ const RANK_CONFIG = {
 export default function RankBadge({ rank, rr }) {
   if (!rank) return <span className="rank-badge rank-badge--none">—</span>
   // rank may carry a division ("Immortal 2"); colors/icons key off the tier.
-  const tier = rank.split(' ')[0]
+  const tier = tierOf(rank)
   const cfg = RANK_CONFIG[tier] || { color: '#888', bg: 'rgba(136,136,136,0.1)', img: null }
   return (
     <span
