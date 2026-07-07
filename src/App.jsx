@@ -7,9 +7,13 @@ import DeleteModal from './components/DeleteModal'
 import Toast from './components/Toast'
 import LockScreen from './components/LockScreen'
 import { getAccounts, createAccount, updateAccount, deleteAccount } from './accountService'
+import { fetchRanksFor } from './rankService'
 import './App.css'
 
 const RANK_ORDER = ['Unranked','Iron','Bronze','Silver','Gold','Platinum','Diamond','Ascendant','Immortal','Radiant']
+
+// "Immortal 2" → "Immortal"; manual ranks are already plain tiers.
+const tierOf = rank => (rank || '').split(' ')[0]
 
 export default function App() {
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem('vac_unlocked') === '1')
@@ -24,6 +28,7 @@ export default function App() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [detailTarget, setDetailTarget] = useState(null)
   const [toasts, setToasts] = useState([])
+  const [liveRanks, setLiveRanks] = useState({})
 
   const showToast = useCallback((msg, type = 'success') => {
     const id = Date.now()
@@ -46,11 +51,26 @@ export default function App() {
 
   useEffect(() => { if (unlocked) fetchAccounts() }, [unlocked, fetchAccounts])
 
+  // Fill in live rank/RR in the background; table renders instantly from DB
+  // and rank cells update as lookups land (cached entries resolve at once).
+  useEffect(() => {
+    if (!accounts.length) return
+    fetchRanksFor(accounts, (id, r) => setLiveRanks(prev => ({ ...prev, [id]: r })))
+  }, [accounts])
+
   if (!unlocked) {
     return <LockScreen onUnlock={() => setUnlocked(true)} />
   }
 
-  const displayed = accounts
+  // Live rank overrides the manually stored one; manual stays as fallback.
+  const merged = accounts.map(a => {
+    const live = liveRanks[a.id]
+    return live
+      ? { ...a, rank: live.label, rankDivision: live.division, rr: live.rr, rankDelta: live.delta }
+      : a
+  })
+
+  const displayed = merged
     .filter(a => {
       const q = search.toLowerCase()
       return (
@@ -59,14 +79,14 @@ export default function App() {
         a.username?.toLowerCase().includes(q)
       )
     })
-    .filter(a => !filterRank || a.rank === filterRank)
+    .filter(a => !filterRank || tierOf(a.rank) === filterRank)
     .sort((a, b) => {
       const { key, dir } = sortConfig
       let va = a[key] ?? ''
       let vb = b[key] ?? ''
       if (key === 'rank') {
-        va = RANK_ORDER.indexOf(a.rank ?? '')
-        vb = RANK_ORDER.indexOf(b.rank ?? '')
+        va = RANK_ORDER.indexOf(tierOf(a.rank)) * 10000 + (a.rankDivision ?? 0) * 1000 + (a.rr ?? 0)
+        vb = RANK_ORDER.indexOf(tierOf(b.rank)) * 10000 + (b.rankDivision ?? 0) * 1000 + (b.rr ?? 0)
       }
       if (va < vb) return dir === 'asc' ? -1 : 1
       if (va > vb) return dir === 'asc' ? 1 : -1

@@ -13,9 +13,11 @@ const RANK_CONFIG = {
   Radiant:   { color: '#ffd700', bg: 'rgba(255,215,0,0.15)',   img: 'https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/27/smallicon.png' },
 }
 
-export default function RankBadge({ rank }) {
+export default function RankBadge({ rank, rr }) {
   if (!rank) return <span className="rank-badge rank-badge--none">—</span>
-  const cfg = RANK_CONFIG[rank] || { color: '#888', bg: 'rgba(136,136,136,0.1)', img: null }
+  // rank may carry a division ("Immortal 2"); colors/icons key off the tier.
+  const tier = rank.split(' ')[0]
+  const cfg = RANK_CONFIG[tier] || { color: '#888', bg: 'rgba(136,136,136,0.1)', img: null }
   return (
     <span
       className="rank-badge"
@@ -35,6 +37,7 @@ export default function RankBadge({ rank }) {
         />
       )}
       {rank}
+      {rr != null && <span className="rank-badge__rr">{rr} RR</span>}
     </span>
   )
 }

@@ -2,10 +2,13 @@ import { useState, useEffect, useRef } from 'react'
 import './AccountModal.css'
 
 const RANKS = ['Unranked','Iron','Bronze','Silver','Gold','Platinum','Diamond','Ascendant','Immortal','Radiant']
-const EMPTY = { ign: '', tagline: '', username: '', password: '', rank: '', verified: false, notes: '' }
+const REGIONS = ['ap', 'eu', 'na', 'kr']
+const EMPTY = { ign: '', tagline: '', username: '', password: '', rank: '', region: 'ap', verified: false, notes: '' }
 
 export default function AccountModal({ title, initial, onSubmit, onClose }) {
-  const [form, setForm] = useState(initial ? { ...EMPTY, ...initial } : { ...EMPTY })
+  const [form, setForm] = useState(
+    initial ? { ...EMPTY, ...initial, region: initial.region || 'ap' } : { ...EMPTY }
+  )
   const [showPw, setShowPw] = useState(false)
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState('')
@@ -128,7 +131,17 @@ export default function AccountModal({ title, initial, onSubmit, onClose }) {
           </Field>
 
           <div className="form-row">
-            <Field label="Rank" error={errors.rank}>
+            <Field label="Region">
+              <select
+                className="field-select"
+                value={form.region}
+                onChange={e => handleChange('region', e.target.value)}
+              >
+                {REGIONS.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
+              </select>
+            </Field>
+
+            <Field label="Rank (fallback)" error={errors.rank}>
               <select
                 className={`field-select ${errors.rank ? 'field-input--error' : ''}`}
                 value={form.rank}
@@ -138,7 +151,9 @@ export default function AccountModal({ title, initial, onSubmit, onClose }) {
                 {RANKS.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
             </Field>
+          </div>
 
+          <div className="form-row">
             <Field label="Verified">
               <div className="verified-toggle-wrap">
                 <button

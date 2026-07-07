@@ -32,7 +32,8 @@ create table accounts (
   tagline     text not null,
   username    text not null unique,
   password    text not null,
-  rank        text,
+  rank        text,           -- manual fallback; live rank comes from the rank API
+  region      text not null default 'ap',  -- ap | eu | na | kr, for rank lookups
   verified    boolean not null default false,
   notes       text default '',
   created_at  timestamptz not null default now(),
@@ -59,11 +60,22 @@ create policy "public access" on accounts
   for all using (true) with check (true);
 ```
 
-> **Already created the table without the `unique` constraint or trigger?** Run:
+> **Already created the table without the `unique` constraint, `region` column, or trigger?** Run:
 > ```sql
 > alter table accounts add constraint accounts_username_key unique (username);
+> alter table accounts add column region text not null default 'ap';
 > ```
 > then the `create or replace function` / `create trigger` statements above.
+
+---
+
+## Live Rank & RR
+
+Rank and RR are fetched automatically from [API Valorant](https://vaccie.pythonanywhere.com/) (`/mmr/{ign}/{tag}/{region}`) using each account's IGN, tagline, and region — the manual **Rank** field is only a fallback when the lookup fails (renamed account, API down, unranked).
+
+- The API sends no CORS headers, so the app never calls it directly: requests go to `/valo-api/...`, proxied by Vite in dev (`vite.config.js`) and by a rewrite on Vercel (`vercel.json`).
+- Lookups run in the background after the table renders and fill in progressively (4 at a time, ~1–3&nbsp;s each), so the account list stays instant.
+- Results are cached in `localStorage` for 5 minutes — reloads within that window show ranks immediately with zero API calls.
 
 ### 2. Configure Environment Variables
 

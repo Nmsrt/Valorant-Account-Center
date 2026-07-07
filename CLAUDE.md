@@ -27,4 +27,6 @@ Single-page React 18 + Vite app, no router, no state library. One screen (accoun
 
 **Auth is cosmetic:** `LockScreen.jsx` compares against a hardcoded `PASSCODE` constant and sets `sessionStorage.vac_unlocked`. There is no real auth; the Supabase anon key with an open RLS policy is the actual (non-)security model.
 
+**Live rank/RR pipeline:** `src/rankService.js` fetches rank from vaccie.pythonanywhere.com per account (ign/tagline/region). That API has **no CORS headers** — never fetch it directly; use the `/valo-api` path, which `vite.config.js` proxies in dev and `vercel.json` rewrites in production (keep the two in sync). Responses are plain text ("Immortal 1, RR: 43 (+19)") and errors are HTTP 200 prose, so `parseRank` failing is the error signal. Results cache in localStorage (5 min TTL). `App.jsx` merges live results over the stored `rank` column (manual value = fallback only); rank filter/sort must go through `tierOf()` because live labels carry divisions ("Immortal 2").
+
 **DB schema lives only in README.md** (SQL block under Setup) — there are no migration files. It expects a `unique` constraint on `accounts.username` and a `before update` trigger maintaining `updated_at`. If you change columns, update the README SQL, the insert/update payloads (`buildPayload`), and note the migration SQL for existing tables in the README.

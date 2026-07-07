@@ -34,3 +34,12 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
+
+.rank-badge__rr {
+  margin-left: 6px;
+  padding-left: 6px;
+  border-left: 1px solid currentColor;
+  opacity: 0.8;
+  font-size: 0.85em;
+  white-space: nowrap;
+}

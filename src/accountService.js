@@ -22,13 +22,14 @@ function assertRequired({ ign, tagline, username, password }) {
   }
 }
 
-function buildPayload({ ign, tagline, username, password, rank, verified, notes }) {
+function buildPayload({ ign, tagline, username, password, rank, region, verified, notes }) {
   return {
     ign: ign.trim(),
     tagline: tagline.trim(),
     username: username.trim(),
     password,
     rank: rank || null,
+    region: (region || 'ap').toLowerCase(),
     verified: verified || false,
     notes: notes?.trim() || '',
   }

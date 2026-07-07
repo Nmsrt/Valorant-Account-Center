@@ -61,7 +61,7 @@ export default function AccountDetailModal({ account, onEdit, onDelete, onClose 
             <div>
               <h2 className="adm-ign">{account.ign}<span className="adm-tag">#{account.tagline}</span></h2>
               <div className="adm-rank-row">
-                <RankBadge rank={account.rank} />
+                <RankBadge rank={account.rank} rr={account.rr} />
                 {account.verified && (
                   <span className="adm-verified">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="11" height="11">

@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/valo-api/:path*",
+      "destination": "https://vaccie.pythonanywhere.com/:path*"
+    },
+    {
+      "source": "/((?!valo-api).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
