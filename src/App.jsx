@@ -78,28 +78,30 @@ export default function App() {
       ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
       : { key, dir: 'asc' })
 
+  // Add/edit errors propagate to AccountModal, which shows them inline.
   const handleAdd = async data => {
-    await createAccount(data)
+    const created = await createAccount(data)
+    setAccounts(prev => [created, ...prev])
     showToast('Account added!')
     setAddOpen(false)
-    fetchAccounts()
   }
 
   const handleEdit = async data => {
-    await updateAccount(editTarget.id, data)
+    const updated = await updateAccount(editTarget.id, data)
+    setAccounts(prev => prev.map(a => (a.id === updated.id ? updated : a)))
     showToast('Account updated!')
     setEditTarget(null)
-    fetchAccounts()
   }
 
   const handleDelete = async () => {
     try {
       await deleteAccount(deleteTarget.id)
+      setAccounts(prev => prev.filter(a => a.id !== deleteTarget.id))
       showToast('Account deleted')
       setDeleteTarget(null)
-      fetchAccounts()
     } catch (e) {
       showToast(e.message || 'Error deleting account', 'error')
+      fetchAccounts()
     }
   }
 

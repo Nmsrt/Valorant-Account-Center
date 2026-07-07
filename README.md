@@ -30,7 +30,7 @@ create table accounts (
   id          uuid primary key default gen_random_uuid(),
   ign         text not null,
   tagline     text not null,
-  username    text not null,
+  username    text not null unique,
   password    text not null,
   rank        text,
   verified    boolean not null default false,
@@ -39,13 +39,31 @@ create table accounts (
   updated_at  timestamptz not null default now()
 );
 
--- Row Level Security: open policy (matches the previous Firestore rules).
--- Tighten this before any real deployment.
+-- Keep updated_at accurate no matter which client writes.
+create or replace function set_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end $$;
+
+create trigger accounts_set_updated_at
+  before update on accounts
+  for each row execute function set_updated_at();
+
+-- Row Level Security: open policy — anyone with the anon key can
+-- read/write every row. Tighten this before any real deployment.
 alter table accounts enable row level security;
 
 create policy "public access" on accounts
   for all using (true) with check (true);
 ```
+
+> **Already created the table without the `unique` constraint or trigger?** Run:
+> ```sql
+> alter table accounts add constraint accounts_username_key unique (username);
+> ```
+> then the `create or replace function` / `create trigger` statements above.
 
 ### 2. Configure Environment Variables
 
