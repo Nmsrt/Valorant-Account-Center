@@ -14,14 +14,16 @@ const RANK_CONFIG = {
   Radiant:   { color: '#ffd700', bg: 'rgba(255,215,0,0.15)',   img: 'https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/27/smallicon.png' },
 }
 
-export default function RankBadge({ rank, rr }) {
-  if (!rank) return <span className="rank-badge rank-badge--none">—</span>
+export default function RankBadge({ rank, rr, loading }) {
+  // `loading` = live lookup in flight; pulse so an old value reads as updating.
+  const pulse = loading ? ' rank-badge--loading' : ''
+  if (!rank) return <span className={`rank-badge rank-badge--none${pulse}`}>—</span>
   // rank may carry a division ("Immortal 2"); colors/icons key off the tier.
   const tier = tierOf(rank)
   const cfg = RANK_CONFIG[tier] || { color: '#888', bg: 'rgba(136,136,136,0.1)', img: null }
   return (
     <span
-      className="rank-badge"
+      className={`rank-badge${pulse}`}
       style={{
         color: cfg.color,
         background: cfg.bg,

@@ -7,7 +7,7 @@ import DeleteModal from './components/DeleteModal'
 import Toast from './components/Toast'
 import LockScreen from './components/LockScreen'
 import { getAccounts, createAccount, updateAccount, deleteAccount } from './accountService'
-import { fetchRanksFor, tierOf, TIERS } from './rankService'
+import { fetchRanksFor, tierOf, TIERS, TTL_MS } from './rankService'
 import './App.css'
 
 // Tier for filter/sort: parsed live tier when the lookup landed, else manual rank.
@@ -32,6 +32,8 @@ export default function App() {
   const [detailTarget, setDetailTarget] = useState(null)
   const [toasts, setToasts] = useState([])
   const [liveRanks, setLiveRanks] = useState({})
+  const [rankPending, setRankPending] = useState(() => new Set())
+  const [sweepTick, setSweepTick] = useState(0)
 
   const showToast = useCallback((msg, type = 'success') => {
     const id = Date.now()
@@ -54,18 +56,41 @@ export default function App() {
 
   useEffect(() => { if (unlocked) fetchAccounts() }, [unlocked, fetchAccounts])
 
+  // Keep the rank cache warm: resweep just past TTL while the tab stays open,
+  // and immediately when the tab regains visibility (the moment a user would
+  // otherwise notice stale data). SWR means these sweeps never blank the UI.
+  useEffect(() => {
+    const bump = () => setSweepTick(t => t + 1)
+    const timer = setInterval(bump, TTL_MS + 60_000)
+    const onVisible = () => { if (!document.hidden) bump() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [])
+
   // Fill in live rank/RR in the background; table renders instantly from DB
   // and rank cells update as lookups land (cached entries resolve at once).
-  // The cleanup cancels the previous pool so an edit/delete can't receive a
-  // stale result for the old identity; the identity check skips re-renders
-  // when a re-run just replays cache hits.
+  // `revalidating` tracks in rankPending and drives the badge shimmer; the
+  // pool always fires a final revalidating=false per queued id (result may be
+  // null) so no row is left shimmering. The cleanup cancels the previous pool
+  // so an edit/delete can't receive a stale result for the old identity; the
+  // identity checks skip re-renders when a re-run just replays cache hits.
   useEffect(() => {
     if (!accounts.length) return
-    const { cancel } = fetchRanksFor(accounts, (id, r) =>
-      setLiveRanks(prev => (prev[id] === r ? prev : { ...prev, [id]: r }))
-    )
+    const { cancel } = fetchRanksFor(accounts, (id, r, revalidating) => {
+      if (r) setLiveRanks(prev => (prev[id] === r ? prev : { ...prev, [id]: r }))
+      setRankPending(prev => {
+        if (prev.has(id) === !!revalidating) return prev
+        const next = new Set(prev)
+        if (revalidating) next.add(id)
+        else next.delete(id)
+        return next
+      })
+    })
     return cancel
-  }, [accounts])
+  }, [accounts, sweepTick])
 
   if (!unlocked) {
     return <LockScreen onUnlock={() => setUnlocked(true)} />
@@ -76,7 +101,8 @@ export default function App() {
   // back to the DB. Display prefers `live.label`; `rank` stays authoritative.
   const merged = accounts.map(a => {
     const live = liveRanks[a.id]
-    return live ? { ...a, live } : a
+    const liveLoading = rankPending.has(a.id)
+    return live || liveLoading ? { ...a, live, liveLoading } : a
   })
 
   const displayed = merged

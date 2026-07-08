@@ -115,7 +115,7 @@ export default function AccountTable({ accounts, loading, sortConfig, onSort, on
                 </td>
 
                 <td>
-                  <RankBadge rank={acc.live?.label ?? acc.rank} rr={acc.live?.rr} />
+                  <RankBadge rank={acc.live?.label ?? acc.rank} rr={acc.live?.rr} loading={acc.liveLoading} />
                 </td>
 
                 <td className="td-copy" onClick={e => e.stopPropagation()}>

@@ -5,7 +5,7 @@
       "destination": "https://vaccie.pythonanywhere.com/:path*"
     },
     {
-      "source": "/((?!valo-api).*)",
+      "source": "/((?!valo-api|api).*)",
       "destination": "/index.html"
     }
   ]
