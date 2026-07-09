@@ -80,7 +80,7 @@ export default function App() {
   useEffect(() => {
     if (!accounts.length) return
     const { cancel } = fetchRanksFor(accounts, (id, r, revalidating) => {
-      if (r) setLiveRanks(prev => (prev[id] === r ? prev : { ...prev, [id]: r }))
+      setLiveRanks(prev => (prev[id] === r ? prev : { ...prev, [id]: r }))
       setRankPending(prev => {
         if (prev.has(id) === !!revalidating) return prev
         const next = new Set(prev)
