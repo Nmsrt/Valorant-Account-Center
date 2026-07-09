@@ -172,7 +172,16 @@ export default function AccountModal({ title, initial, onSubmit, onClose }) {
                         </svg>
                         Verified
                       </>
-                    ) : 'Not verified'}
+                    ) : (
+                      <>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12">
+                          <circle cx="12" cy="12" r="9"/>
+                          <line x1="12" y1="8" x2="12" y2="13"/>
+                          <circle cx="12" cy="16.3" r="0.6" fill="currentColor" stroke="none"/>
+                        </svg>
+                        Not verified
+                      </>
+                    )}
                   </span>
                 </button>
               </div>

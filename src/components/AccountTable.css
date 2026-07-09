@@ -88,10 +88,13 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.verified-badge--verified {
   background: rgba(74,222,128,0.15);
   border: 1px solid rgba(74,222,128,0.4);
   color: #4ade80;
-  flex-shrink: 0;
 }
 
 .tagline-tag {

@@ -63,7 +63,7 @@ export default function AccountDetailModal({ account, onEdit, onDelete, onClose 
               <div className="adm-rank-row">
                 <RankBadge rank={account.live?.label ?? account.rank} rr={account.live?.rr} loading={account.liveLoading} />
                 {account.verified && (
-                  <span className="adm-verified">
+                  <span className="adm-verified adm-verified--verified">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="11" height="11">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>

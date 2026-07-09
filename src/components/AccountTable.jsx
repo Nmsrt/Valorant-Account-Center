@@ -101,7 +101,7 @@ export default function AccountTable({ accounts, loading, sortConfig, onSort, on
                   <div className="ign-cell">
                     <span className="ign-text">{acc.ign}</span>
                     {acc.verified && (
-                      <span className="verified-badge" title="Verified">
+                      <span className="verified-badge verified-badge--verified" title="Verified">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="10" height="10">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
