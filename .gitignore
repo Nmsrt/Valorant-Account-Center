@@ -13,6 +13,11 @@ build/
 .env.local
 .env.*.local
 
+# DB exports — contain plaintext account passwords
+accounts_export.json
+accounts_import.sql
+*.export.json
+
 # Vite
 *.local
 vite.config.js.timestamp-*
